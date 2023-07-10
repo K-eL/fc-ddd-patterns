@@ -43,6 +43,12 @@ export default class Order {
     return true;
   }
 
+  updateOrderItem(orderItem: OrderItem): void {
+    this._items = this._items.map((item) => {
+      return item.id === orderItem.id ? orderItem : item;
+    });
+  }
+
   total(): number {
     return this._items.reduce((acc, item) => acc + item.total(), 0);
   }
