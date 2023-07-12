@@ -5,6 +5,7 @@ import EnviaConsolelog2Handler from "./handler/envia-consolelog2.handler";
 import CustomerFactory from "../factory/customer.factory";
 import Address from "../value-object/address";
 import CustomerCreatedEvent from "./customer-created.event";
+import CustomerAddressChangedEvent from "./customer-address-changed.event";
 
 describe("Customer Created Event Dispatcher Tests", () => {
 
@@ -14,24 +15,30 @@ describe("Customer Created Event Dispatcher Tests", () => {
 		const eventHandler1 = new EnviaConsolelog1Handler();
 		const eventHandler2 = new EnviaConsolelog2Handler();
 
-		eventDispatcher.register("CustomerCreatedEvent", eventHandler);
+		eventDispatcher.register("CustomerAddressChangedEvent", eventHandler);
 		eventDispatcher.register("CustomerCreatedEvent", eventHandler1);
 		eventDispatcher.register("CustomerCreatedEvent", eventHandler2);
 
 		expect(
+			eventDispatcher.getEventHandlers["CustomerAddressChangedEvent"]
+		).toBeDefined();
+		expect(
 			eventDispatcher.getEventHandlers["CustomerCreatedEvent"]
 		).toBeDefined();
 		expect(
-			eventDispatcher.getEventHandlers["CustomerCreatedEvent"].length
-		).toBe(3);
+			eventDispatcher.getEventHandlers["CustomerAddressChangedEvent"].length
+		).toBe(1);
 		expect(
-			eventDispatcher.getEventHandlers["CustomerCreatedEvent"][0]
+			eventDispatcher.getEventHandlers["CustomerCreatedEvent"].length
+		).toBe(2);
+		expect(
+			eventDispatcher.getEventHandlers["CustomerAddressChangedEvent"][0]
 		).toMatchObject(eventHandler);
 		expect(
-			eventDispatcher.getEventHandlers["CustomerCreatedEvent"][1]
+			eventDispatcher.getEventHandlers["CustomerCreatedEvent"][0]
 		).toMatchObject(eventHandler1);
 		expect(
-			eventDispatcher.getEventHandlers["CustomerCreatedEvent"][2]
+			eventDispatcher.getEventHandlers["CustomerCreatedEvent"][1]
 		).toMatchObject(eventHandler2);
 	});
 
@@ -44,18 +51,20 @@ describe("Customer Created Event Dispatcher Tests", () => {
 		const eventHandler2 = new EnviaConsolelog2Handler();
 		const spyEventHandler2 = jest.spyOn(eventHandler2, "handle");
 
-		eventDispatcher.register("CustomerCreatedEvent", eventHandler);
+		eventDispatcher.register("CustomerAddressChangedEvent", eventHandler);
 		eventDispatcher.register("CustomerCreatedEvent", eventHandler1);
 		eventDispatcher.register("CustomerCreatedEvent", eventHandler2);
 		const customer = CustomerFactory.createWithAddress(
 			"Customer 01", 
 			new Address("Street 01", 123, "234-234", "City1"))
 
+		const customerAddressChangedEvent = new CustomerAddressChangedEvent(customer);
+		eventDispatcher.notify(customerAddressChangedEvent)
 		const customerCreatedEvent = new CustomerCreatedEvent(customer);
 		eventDispatcher.notify(customerCreatedEvent)
 
 		expect(spyEventHandler).toHaveBeenCalledTimes(1);
-		expect(spyEventHandler).toHaveBeenCalledWith(customerCreatedEvent);
+		expect(spyEventHandler).toHaveBeenCalledWith(customerAddressChangedEvent);
 		expect(spyEventHandler1).toHaveBeenCalledTimes(1);
 		expect(spyEventHandler1).toHaveBeenCalledWith(customerCreatedEvent);
 		expect(spyEventHandler2).toHaveBeenCalledTimes(1);
